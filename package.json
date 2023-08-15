@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/nathansmith-ux/tinyapp/issues"
   },
-  "homepage": "https://github.com/nathansmith-ux/tinyapp#readme"
+  "homepage": "https://github.com/nathansmith-ux/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
