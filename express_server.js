@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8000;
+const PORT = 8080;
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -31,8 +31,17 @@ app.get("/urls", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok")
+  const randomString = generateRandomString()
+  urlDatabase[randomString] = req.body.longURL;
+  res.redirect(302, `urls/${randomString}`)
+})
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  if (!longURL) {
+    res.send("404 Error, enter a valid URL")
+  }
+  res.redirect(longURL)
 })
 
 app.get("/urls/new", (req, res) => {
