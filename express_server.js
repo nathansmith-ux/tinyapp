@@ -36,6 +36,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`urls/${randomString}`)
 })
 
+// Redirects longURL to its respective domain
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   if (!longURL) {
@@ -53,9 +54,17 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show.ejs", templateVars)
 })
 
+// Deletes existing URL from the database
 app.post("/urls/:id/delete", (req, res) => {
   const userInput = req.params.id
   delete urlDatabase[userInput]
+  res.redirect("/urls")
+})
+
+// Grabs user edit input and updates URL database
+app.post("/urls/:id", (req, res) => {
+  const userInput = req.body.longURL
+  urlDatabase[req.params.id] = userInput
   res.redirect("/urls")
 })
 
