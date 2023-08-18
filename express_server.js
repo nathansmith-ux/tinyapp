@@ -53,6 +53,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show.ejs", templateVars)
 })
 
+app.post("/urls/:id/delete", (req, res) => {
+  const userInput = req.params.id
+  delete urlDatabase[userInput]
+  res.redirect("/urls")
+})
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 })
