@@ -28,13 +28,17 @@
           </tr>
         </thead>
         <tbody>
-          <% Object.keys(urls).forEach((key) => { %>
+          <% for (let id in urls) { %>
             <tr>
-              <td><%= key %></td>
-              <td><%= urls[key] %></td>
-              <td><a href = "#"> Shorten Long URL </a></td>
+              <td><%= id %></td>
+              <td><%= urls[id] %></td>
+              <td>
+                <form action = "/urls/<%= id%>/delete" method = "POST">
+                  <button type = "submit" class = "btn btn-outline-danger">Delete</button>
+                </form>
+              </td>
             </tr>
-          <% }) %>
+          <% } %>
         </tbody>
       </table>
     </main>
