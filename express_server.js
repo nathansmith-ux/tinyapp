@@ -5,6 +5,10 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
+/**
+ * Function generates a random 6 letter string
+ * @returns string that consists of a random series of letters numbers or symbols
+ */
 function generateRandomString() {
   let result = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*"
@@ -16,20 +20,24 @@ function generateRandomString() {
   return result;
 }
 
+// Base-Level Database holding shortURLs and longURLs
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 }
 
+// Not necessary to main app function
 app.get("/", (req, res) => {
   res.send("Hello");
 })
 
+// App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index.ejs", templateVars)
 })
 
+// Posts randomly generating string with longURL to homepage
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString()
   urlDatabase[randomString] = req.body.longURL;
@@ -45,16 +53,18 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL)
 })
 
+// Takes user to a page to create a new URL
 app.get("/urls/new", (req, res) => {
   res.render("urls_new.ejs")
 })
 
+// Page user is taken to when they create a new URL
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id]}
   res.render("urls_show.ejs", templateVars)
 })
 
-// Deletes existing URL from the database
+// Deletes existing URL from the database on homepage
 app.post("/urls/:id/delete", (req, res) => {
   const userInput = req.params.id
   delete urlDatabase[userInput]
@@ -68,10 +78,12 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls")
 })
 
+// Not necessary for main app function
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 })
 
+// Not necessary for main app function
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 })
