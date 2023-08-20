@@ -1,6 +1,9 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
+
 const app = express();
 const PORT = 8080;
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -33,7 +36,11 @@ app.get("/", (req, res) => {
 
 // App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    username: req.cookies["username"],
+    urls: urlDatabase 
+  };
+  console.log('cookies', req.cookies["username"]);
   res.render("urls_index.ejs", templateVars)
 })
 
@@ -61,12 +68,19 @@ app.get("/u/:id", (req, res) => {
 
 // Takes user to a page to create a new URL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new.ejs")
+  const templateVars = {
+    username: req.cookies["username"],
+  }
+  res.render("urls_new.ejs", templateVars)
 })
 
 // Page user is taken to when they create a new URL
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id]}
+  const templateVars = { 
+    id: req.params.id, 
+    longURL: urlDatabase[req.params.id],
+    username: req.cookies["username"],
+  }
   res.render("urls_show.ejs", templateVars)
 })
 
