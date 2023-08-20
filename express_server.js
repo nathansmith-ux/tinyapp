@@ -44,6 +44,12 @@ app.post("/urls", (req, res) => {
   res.redirect(`urls/${randomString}`)
 })
 
+// Post handles user logins
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect("/urls")
+})
+
 // Redirects longURL to its respective domain
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
