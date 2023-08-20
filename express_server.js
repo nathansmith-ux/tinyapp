@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
  * @returns string that consists of a random series of letters numbers or symbols
  */
 function generateRandomString() {
-  let result = "";
+  let result;
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*"
   const charactersLength = characters.length;
   for (let i = 0; i < 6; i++) {
@@ -40,7 +40,6 @@ app.get("/urls", (req, res) => {
     username: req.cookies["username"],
     urls: urlDatabase 
   };
-  console.log('cookies', req.cookies["username"]);
   res.render("urls_index.ejs", templateVars)
 })
 
@@ -54,6 +53,12 @@ app.post("/urls", (req, res) => {
 // Post handles user logins
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
+  res.redirect("/urls")
+})
+
+// Post handles user logouts
+app.post("/logout", (req, res) => {
+  res.clearCookie('username')
   res.redirect("/urls")
 })
 
