@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
  * @returns string that consists of a random series of letters numbers or symbols
  */
 function generateRandomString() {
-  let result;
+  let result = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*"
   const charactersLength = characters.length;
   for (let i = 0; i < 6; i++) {
@@ -28,6 +28,15 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 }
+
+// Database holding user IDs, email and passwords
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+};
 
 // Not necessary to main app function
 app.get("/", (req, res) => {
@@ -60,6 +69,26 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   res.clearCookie('username')
   res.redirect("/urls")
+})
+
+// Get handles new user registration
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render("urls_register.ejs", templateVars)
+})
+
+// Post hanldes new user account creation
+app.post("/register", (req, res) => {
+  let randomID = generateRandomString()
+  users[randomID] = {
+    id: randomID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.cookie('user_id', users[randomID]["id"]);
+  res.redirect("/urls");
 })
 
 // Redirects longURL to its respective domain
