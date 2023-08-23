@@ -31,11 +31,6 @@ const urlDatabase = {
 
 // Database holding user IDs, email and passwords
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
 };
 
 // Not necessary to main app function
@@ -46,7 +41,7 @@ app.get("/", (req, res) => {
 // App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    user: users[req.cookies.user_id],
     urls: urlDatabase 
   };
   res.render("urls_index.ejs", templateVars)
@@ -74,20 +69,22 @@ app.post("/logout", (req, res) => {
 // Get handles new user registration
 app.get("/register", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies.user_id],
   }
   res.render("urls_register.ejs", templateVars)
 })
 
-// Post hanldes new user account creation
+// Post handles new user account creation
 app.post("/register", (req, res) => {
-  let randomID = generateRandomString()
+  let randomID = generateRandomString();
+
   users[randomID] = {
     id: randomID,
     email: req.body.email,
     password: req.body.password
   }
-  res.cookie('user_id', users[randomID]["id"]);
+  
+  res.cookie('user_id', randomID);
   res.redirect("/urls");
 })
 
@@ -103,7 +100,7 @@ app.get("/u/:id", (req, res) => {
 // Takes user to a page to create a new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies.user_id],
   }
   res.render("urls_new.ejs", templateVars)
 })
@@ -113,7 +110,7 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { 
     id: req.params.id, 
     longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"],
+    user: users[req.cookies.user_id],
   }
   res.render("urls_show.ejs", templateVars)
 })
