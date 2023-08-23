@@ -42,12 +42,10 @@ const users = {
 function getUserByEmail(email) {
   for (const userInfo in users) {
     if (users[userInfo].email === email) {
-      console.log("match for: ", email)
       return users
     } else {
     }
   }
-  console.log("no match for: ", email)
   return null
 }
 
@@ -70,7 +68,16 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString()
   urlDatabase[randomString] = req.body.longURL;
-  res.redirect(`urls/${randomString}`)
+  res.redirect(`urls/${randomString}`);
+})
+
+// Get request handles new login page
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  }
+
+  res.render("urls_login.ejs", templateVars);
 })
 
 // Post handles user logins
