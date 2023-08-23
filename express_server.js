@@ -33,6 +33,25 @@ const urlDatabase = {
 const users = {
 };
 
+
+/**
+ * Function checks if an email exists in the users object
+ * @param {email} email 
+ * @return user object or null
+ */
+function getUserByEmail(email) {
+  for (const userInfo in users) {
+    if (users[userInfo].email === email) {
+      console.log("match for: ", email)
+      return users
+    } else {
+    }
+  }
+  console.log("no match for: ", email)
+  return null
+}
+
+
 // Not necessary to main app function
 app.get("/", (req, res) => {
   res.send("Hello");
@@ -76,14 +95,25 @@ app.get("/register", (req, res) => {
 
 // Post handles new user account creation
 app.post("/register", (req, res) => {
-  let randomID = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password
+  
+  if (!email|| !password) {
+    res.status(400).send("Invalid Credentials")
+  }
 
+  const existingUser = getUserByEmail(req.body.email)
+  if (existingUser) {
+    res.status(400).send("Email already exists")
+  }
+
+  let randomID = generateRandomString();
   users[randomID] = {
     id: randomID,
-    email: req.body.email,
-    password: req.body.password
+    email: email,
+    password: password
   }
-  
+
   res.cookie('user_id', randomID);
   res.redirect("/urls");
 })
