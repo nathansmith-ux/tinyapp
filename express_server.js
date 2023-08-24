@@ -31,19 +31,23 @@ const urlDatabase = {
 
 // Database holding user IDs, email and passwords
 const users = {
+  rLCvzw: {
+    id: "rLCvzw",
+    email: "test@gmail.com",
+    password: "12345"
+  }
 };
 
 
 /**
  * Function checks if an email exists in the users object
  * @param {email} email 
- * @return user object or null
+ * @return users object or null
  */
 function getUserByEmail(email) {
   for (const userInfo in users) {
     if (users[userInfo].email === email) {
-      return users
-    } else {
+      return userInfo;
     }
   }
   return null
@@ -82,14 +86,25 @@ app.get("/login", (req, res) => {
 
 // Post handles user logins
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect("/urls")
+  const email = req.body.email;
+  const password = req.body.password;
+
+  const existingUser = getUserByEmail(email)
+
+  if (existingUser && password === users[existingUser].password) {
+      res.cookie("user_id", existingUser)
+      res.redirect("/urls")
+
+  } else {
+    res.status(403).send("Invalid Credentials")
+  }
+
 })
 
 // Post handles user logouts
 app.post("/logout", (req, res) => {
-  res.clearCookie('username')
-  res.redirect("/urls")
+  res.clearCookie('user_id')
+  res.redirect("/login")
 })
 
 // Get handles new user registration
