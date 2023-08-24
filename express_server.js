@@ -96,7 +96,7 @@ app.post("/login", (req, res) => {
       res.redirect("/urls")
 
   } else {
-    res.status(403).send("Invalid Credentials")
+    return res.status(403).send("Invalid Credentials")
   }
 
 })
@@ -121,12 +121,12 @@ app.post("/register", (req, res) => {
   const password = req.body.password
   
   if (!email|| !password) {
-    res.status(400).send("Invalid Credentials")
+    return res.status(400).send("Invalid Credentials")
   }
 
   const existingUser = getUserByEmail(req.body.email)
   if (existingUser) {
-    res.status(400).send("Email already exists")
+    return res.status(400).send("Email already exists")
   }
 
   let randomID = generateRandomString();
