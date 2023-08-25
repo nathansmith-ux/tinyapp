@@ -70,9 +70,15 @@ app.get("/urls", (req, res) => {
 
 // Posts randomly generating string with longURL to homepage
 app.post("/urls", (req, res) => {
-  const randomString = generateRandomString();
-  urlDatabase[randomString] = req.body.longURL;
-  res.redirect(`urls/${randomString}`);
+  
+  if (!req.cookies.user_id) {
+    res.send("To access this feature you need to have an account")
+  } else {
+    const randomString = generateRandomString();
+    urlDatabase[randomString] = req.body.longURL;
+    res.redirect(`urls/${randomString}`);
+  }
+
 });
 
 // Get request handles new login page
@@ -81,7 +87,11 @@ app.get("/login", (req, res) => {
     user: users[req.cookies.user_id]
   };
 
-  res.render("urls_login.ejs", templateVars);
+  if (req.cookies.user_id) {
+    return res.redirect("/urls");
+  } else {
+    return res.render("urls_login.ejs", templateVars);
+  }
 });
 
 // Post handles user logins
@@ -112,7 +122,12 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
   };
-  res.render("urls_register.ejs", templateVars);
+
+  if (req.cookies.user_id) {
+    return res.redirect("/urls");
+  } else {
+    return res.render("urls_register.ejs", templateVars);
+  }
 });
 
 // Post handles new user account creation
@@ -143,10 +158,12 @@ app.post("/register", (req, res) => {
 // Redirects longURL to its respective domain
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
+
   if (!longURL) {
-    res.send("404 Error, enter a valid URL");
+    return res.send("Uh Oh... Looks like your returned a whole lot of nothing. Please enter A valid ID and try again");
+  } else {
+    return res.redirect(longURL);
   }
-  res.redirect(longURL);
 });
 
 // Takes user to a page to create a new URL
@@ -154,7 +171,13 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
   };
-  res.render("urls_new.ejs", templateVars);
+
+  if (req.cookies.user_id) {
+    return res.render("urls_new.ejs", templateVars);
+  } else {
+    return res.redirect("/login");
+  }
+
 });
 
 // Page user is taken to when they create a new URL
