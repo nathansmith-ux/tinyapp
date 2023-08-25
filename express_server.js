@@ -14,10 +14,10 @@ app.use(express.urlencoded({ extended: true }));
  */
 function generateRandomString() {
   let result = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*"
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*";
   const charactersLength = characters.length;
   for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
 
   return result;
@@ -27,7 +27,7 @@ function generateRandomString() {
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
-}
+};
 
 // Database holding user IDs, email and passwords
 const users = {
@@ -41,7 +41,7 @@ const users = {
 
 /**
  * Function checks if an email exists in the users object
- * @param {email} email 
+ * @param {email} email
  * @return users object or null
  */
 function getUserByEmail(email) {
@@ -50,83 +50,83 @@ function getUserByEmail(email) {
       return userInfo;
     }
   }
-  return null
+  return null;
 }
 
 
 // Not necessary to main app function
 app.get("/", (req, res) => {
   res.send("Hello");
-})
+});
 
 // App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlDatabase 
+    urls: urlDatabase
   };
-  res.render("urls_index.ejs", templateVars)
-})
+  res.render("urls_index.ejs", templateVars);
+});
 
 // Posts randomly generating string with longURL to homepage
 app.post("/urls", (req, res) => {
-  const randomString = generateRandomString()
+  const randomString = generateRandomString();
   urlDatabase[randomString] = req.body.longURL;
   res.redirect(`urls/${randomString}`);
-})
+});
 
 // Get request handles new login page
 app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id]
-  }
+  };
 
   res.render("urls_login.ejs", templateVars);
-})
+});
 
 // Post handles user logins
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const existingUser = getUserByEmail(email)
+  const existingUser = getUserByEmail(email);
 
   if (existingUser && password === users[existingUser].password) {
-      res.cookie("user_id", existingUser)
-      res.redirect("/urls")
+    res.cookie("user_id", existingUser);
+    res.redirect("/urls");
 
   } else {
-    return res.status(403).send("Invalid Credentials")
+    return res.status(403).send("Invalid Credentials");
   }
 
-})
+});
 
 // Post handles user logouts
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id')
-  res.redirect("/login")
-})
+  res.clearCookie('user_id');
+  res.redirect("/login");
+});
 
 // Get handles new user registration
 app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
-  }
-  res.render("urls_register.ejs", templateVars)
-})
+  };
+  res.render("urls_register.ejs", templateVars);
+});
 
 // Post handles new user account creation
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password
+  const password = req.body.password;
   
-  if (!email|| !password) {
-    return res.status(400).send("Invalid Credentials")
+  if (!email || !password) {
+    return res.status(400).send("Invalid Credentials");
   }
 
-  const existingUser = getUserByEmail(req.body.email)
+  const existingUser = getUserByEmail(req.body.email);
   if (existingUser) {
-    return res.status(400).send("Email already exists")
+    return res.status(400).send("Email already exists");
   }
 
   let randomID = generateRandomString();
@@ -134,63 +134,63 @@ app.post("/register", (req, res) => {
     id: randomID,
     email: email,
     password: password
-  }
+  };
 
   res.cookie('user_id', randomID);
   res.redirect("/urls");
-})
+});
 
 // Redirects longURL to its respective domain
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   if (!longURL) {
-    res.send("404 Error, enter a valid URL")
+    res.send("404 Error, enter a valid URL");
   }
-  res.redirect(longURL)
-})
+  res.redirect(longURL);
+});
 
 // Takes user to a page to create a new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
-  }
-  res.render("urls_new.ejs", templateVars)
-})
+  };
+  res.render("urls_new.ejs", templateVars);
+});
 
 // Page user is taken to when they create a new URL
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { 
-    id: req.params.id, 
+  const templateVars = {
+    id: req.params.id,
     longURL: urlDatabase[req.params.id],
     user: users[req.cookies.user_id],
-  }
-  res.render("urls_show.ejs", templateVars)
-})
+  };
+  res.render("urls_show.ejs", templateVars);
+});
 
 // Deletes existing URL from the database on homepage
 app.post("/urls/:id/delete", (req, res) => {
-  const userInput = req.params.id
-  delete urlDatabase[userInput]
-  res.redirect("/urls")
-})
+  const userInput = req.params.id;
+  delete urlDatabase[userInput];
+  res.redirect("/urls");
+});
 
 // Grabs user edit input and updates URL database
 app.post("/urls/:id", (req, res) => {
-  const userInput = req.body.longURL
-  urlDatabase[req.params.id] = userInput
-  res.redirect("/urls")
-})
+  const userInput = req.body.longURL;
+  urlDatabase[req.params.id] = userInput;
+  res.redirect("/urls");
+});
 
 // Not necessary for main app function
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-})
+});
 
 // Not necessary for main app function
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
-})
+});
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`)
-})
+  console.log(`Example app listening on port ${PORT}!`);
+});
