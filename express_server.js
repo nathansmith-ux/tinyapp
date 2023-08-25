@@ -25,8 +25,14 @@ function generateRandomString() {
 
 // Base-Level Database holding shortURLs and longURLs
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "rLCvzw",
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "rLCvzw"
+  }
 };
 
 // Database holding user IDs, email and passwords
@@ -53,6 +59,21 @@ function getUserByEmail(email) {
   return null;
 }
 
+/**
+ * Function filters the urls that match cookie id and put into a new object
+ * @param {cookie id} id
+ * @returns A new url object
+ */
+function urlsForUser (id) {
+  let urlObj = {};
+
+  for (let shortId in urlDatabase) {
+    if (urlDatabase[shortId].userID === id) {
+      urlObj[shortId] = urlDatabase[shortId]
+    }
+  }
+  return urlObj
+}
 
 // Not necessary to main app function
 app.get("/", (req, res) => {
@@ -61,11 +82,22 @@ app.get("/", (req, res) => {
 
 // App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies.user_id],
-    urls: urlDatabase
-  };
-  res.render("urls_index.ejs", templateVars);
+
+  if (req.cookies.user_id) {
+
+    const urls = urlsForUser(req.cookies.user_id);
+
+    const templateVars = {
+      user: users[req.cookies.user_id],
+      urls: urls
+    };
+
+    return res.render("urls_index.ejs", templateVars);
+
+  } else {
+    return res.redirect("/login");
+  }
+
 });
 
 // Posts randomly generating string with longURL to homepage
@@ -73,9 +105,15 @@ app.post("/urls", (req, res) => {
   
   if (!req.cookies.user_id) {
     res.send("To access this feature you need to have an account")
+
   } else {
     const randomString = generateRandomString();
-    urlDatabase[randomString] = req.body.longURL;
+
+    urlDatabase[randomString]= {
+      longURL: req.body.longURL,
+      userID: req.cookies.user_id
+    }
+
     res.redirect(`urls/${randomString}`);
   }
 
@@ -157,12 +195,12 @@ app.post("/register", (req, res) => {
 
 // Redirects longURL to its respective domain
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const URL = urlDatabase[req.params.id].longURL;
 
-  if (!longURL) {
+  if (!URL) {
     return res.send("Uh Oh... Looks like your returned a whole lot of nothing. Please enter A valid ID and try again");
   } else {
-    return res.redirect(longURL);
+    return res.redirect(URL);
   }
 });
 
@@ -182,26 +220,70 @@ app.get("/urls/new", (req, res) => {
 
 // Page user is taken to when they create a new URL
 app.get("/urls/:id", (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    user: users[req.cookies.user_id],
-  };
-  res.render("urls_show.ejs", templateVars);
+  const id = req.params.id
+  const url = urlDatabase[req.params.id]
+
+  if(!req.cookies.user_id) {
+    return res.send("Please login or create an account")
+  
+  } else if (!url) {
+    return res.status(404).send("The url you tried accessing doesn't exist")
+
+  } else if (url.userID !== req.cookies.user_id) {
+    res.send("You don't have permission to view this URL");
+  } else {
+    
+    const templateVars = {
+      id: id,
+      url: url.longURL,
+      user: users[req.cookies.user_id],
+    };
+  
+    res.render("urls_show.ejs", templateVars);
+  }
+
 });
 
 // Deletes existing URL from the database on homepage
 app.post("/urls/:id/delete", (req, res) => {
   const userInput = req.params.id;
-  delete urlDatabase[userInput];
-  res.redirect("/urls");
+  const urls = urlsForUser(req.cookies.user_id);
+
+  if (!urlDatabase[userInput]) {
+    return res.send("URL ID doesn't exist");
+
+  } else if (!req.cookies.user_id) {
+    return res.send("Please Login");
+
+  } else if (!urls[userInput]) {
+    return res.send("You can't delete another account's URL!!");
+
+  } else {
+    delete urlDatabase[userInput];
+    res.redirect("/urls");
+
+  }
 });
 
 // Grabs user edit input and updates URL database
 app.post("/urls/:id", (req, res) => {
-  const userInput = req.body.longURL;
-  urlDatabase[req.params.id] = userInput;
-  res.redirect("/urls");
+  const userInput = req.body.url;
+  const urlId = req.params.id;
+  const urls = urlsForUser(req.cookies.user_id);
+
+  if(!urlDatabase[urlId]) {
+    return res.send("URL ID doesn't exist");
+
+  } else if (!req.cookies.user_id) {
+    return res.send("Please Login");
+
+  } else if (!urls[urlId]) {
+    return res.send("You can't edit another account's URL!!")
+  } else {
+
+      urlDatabase[req.params.id].longURL = userInput;
+      res.redirect("/urls");
+  }
 });
 
 // Not necessary for main app function
