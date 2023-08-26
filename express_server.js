@@ -1,3 +1,4 @@
+// Server Requirements
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
@@ -14,34 +15,11 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // Expires in 24 hours
 }));
 
-/**
- * Function generates a random 6 letter string
- * @returns string that consists of a random series of letters numbers or symbols
- */
-function generateRandomString() {
-  let result = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#*";
-  const charactersLength = characters.length;
-  for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
+// Helper Function Requirements
+const { generateRandomString, getUserByEmail, urlsForUser } = require("./helpers");
 
-  return result;
-}
 
-// Base-Level Database holding shortURLs and longURLs
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "rLCvzw",
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "rLCvzw"
-  }
-};
-
-// Database holding user IDs, email and passwords
+// Databases with data
 const password = "12345";
 const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
@@ -53,48 +31,23 @@ const users = {
   }
 };
 
-
-/**
- * Function checks if an email exists in the users object
- * @param {email} email
- * @return users object or null
- */
-function getUserByEmail(email) {
-  for (const userInfo in users) {
-    if (users[userInfo].email === email) {
-      return users[userInfo];
-    }
+const urlDatabase = {
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "rLCvzw",
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "rLCvzw"
   }
-  return null;
-}
-
-/**
- * Function filters the urls that match cookie id and put into a new object
- * @param {cookie id} id
- * @returns A new url object
- */
-function urlsForUser(id) {
-  let urlObj = {};
-
-  for (let shortId in urlDatabase) {
-    if (urlDatabase[shortId].userID === id) {
-      urlObj[shortId] = urlDatabase[shortId];
-    }
-  }
-  return urlObj;
-}
-
-// Not necessary to main app function
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
+};
 
 // App homepage where users can see all their URLs
 app.get("/urls", (req, res) => {
 
   if (req.session.user_id) {
 
-    const urls = urlsForUser(req.session.user_id);
+    const urls = urlsForUser(req.session.user_id, urlDatabase);
 
     const templateVars = {
       user: users[req.session.user_id],
@@ -136,6 +89,7 @@ app.get("/login", (req, res) => {
 
   if (req.session.user_id) {
     return res.redirect("/urls");
+
   } else {
     return res.render("urls_login.ejs", templateVars);
   }
@@ -145,7 +99,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const existingUser = getUserByEmail(email);
+  const existingUser = getUserByEmail(email, users);
 
   // Checking if user exists and tieing their id to their session
   if (existingUser && bcrypt.compareSync(password, existingUser.hashedPassword)) {
@@ -172,6 +126,7 @@ app.get("/register", (req, res) => {
 
   if (req.session.user_id) {
     return res.redirect("/urls");
+
   } else {
     return res.render("urls_register.ejs", templateVars);
   }
@@ -181,7 +136,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const existingUser = getUserByEmail(req.body.email);
+  const existingUser = getUserByEmail(req.body.email, users);
   const hashedPassword = bcrypt.hashSync(password, saltRounds);
   
   if (!email || !password) {
@@ -223,6 +178,7 @@ app.get("/urls/new", (req, res) => {
 
   if (req.session.user_id) {
     return res.render("urls_new.ejs", templateVars);
+
   } else {
     return res.redirect("/login");
   }
@@ -259,7 +215,7 @@ app.get("/urls/:id", (req, res) => {
 // Deletes existing URL from the database on homepage
 app.post("/urls/:id/delete", (req, res) => {
   const userInput = req.params.id;
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.user_id, urlDatabase);
   
   // Prevents deleting urls that don't exist or user don't own
   if (!urlDatabase[userInput]) {
@@ -282,7 +238,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const userInput = req.body.url;
   const urlId = req.params.id;
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.user_id, urlDatabase);
 
   // Prevents editing urls that don't exist or user don't own
   if (!urlDatabase[urlId]) {
@@ -298,16 +254,6 @@ app.post("/urls/:id", (req, res) => {
     urlDatabase[req.params.id].longURL = userInput;
     res.redirect("/urls");
   }
-});
-
-// Not necessary for main app function
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-// Not necessary for main app function
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
