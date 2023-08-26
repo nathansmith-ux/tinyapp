@@ -1,10 +1,12 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080;
-app.use(cookieParser());
+const saltRounds = 10;
 
+app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,11 +38,14 @@ const urlDatabase = {
 };
 
 // Database holding user IDs, email and passwords
+const password = "12345"
+const hashedPassword = bcrypt.hashSync(password, saltRounds);
+
 const users = {
   rLCvzw: {
     id: "rLCvzw",
     email: "test@gmail.com",
-    password: "12345"
+    hashedPassword: hashedPassword
   }
 };
 
@@ -53,7 +58,7 @@ const users = {
 function getUserByEmail(email) {
   for (const userInfo in users) {
     if (users[userInfo].email === email) {
-      return userInfo;
+      return users[userInfo];
     }
   }
   return null;
@@ -136,11 +141,10 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
   const existingUser = getUserByEmail(email);
 
-  if (existingUser && password === users[existingUser].password) {
-    res.cookie("user_id", existingUser);
+  if (existingUser && bcrypt.compareSync(password, existingUser.hashedPassword)) {
+    res.cookie("user_id", existingUser.id);
     res.redirect("/urls");
 
   } else {
@@ -172,12 +176,13 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const existingUser = getUserByEmail(req.body.email);
+  const hashedPassword = bcrypt.hashSync(password, saltRounds);
   
   if (!email || !password) {
     return res.status(400).send("Invalid Credentials");
   }
 
-  const existingUser = getUserByEmail(req.body.email);
   if (existingUser) {
     return res.status(400).send("Email already exists");
   }
@@ -186,7 +191,7 @@ app.post("/register", (req, res) => {
   users[randomID] = {
     id: randomID,
     email: email,
-    password: password
+    hashedPassword: hashedPassword
   };
 
   res.cookie('user_id', randomID);
