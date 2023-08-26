@@ -11,10 +11,10 @@ TinyApp is a full stack web application built with Node and Express that allows 
 !["The new URL page allows users to input any url of their choice"](https://github.com/nathansmith-ux/tinyapp/blob/main/docs/test-email-new-url-page.png)
 
 ### Tiny URL Created From Long URL
-!["Once users have inputed a url they wish to be shortened they will be redirected to this page where they will receive a short ID and given the option to edit their chosen url."]("https://github.com/nathansmith-ux/tinyapp/blob/main/docs/test-email-new-url-page.png")
+!["Once users have inputed a url they wish to be shortened they will be redirected to this page where they will receive a short ID and given the option to edit their chosen url."](https://github.com/nathansmith-ux/tinyapp/blob/main/docs/test-email-new-url-created-page.png)
 
 ### Registration Page
-!["The page that users can use to register for the app."]("https://github.com/nathansmith-ux/tinyapp/blob/main/docs/register-page.png")
+!["The page that users can use to register for the app."](https://github.com/nathansmith-ux/tinyapp/blob/main/docs/register-page.png)
 
 ## Dependencies
 
